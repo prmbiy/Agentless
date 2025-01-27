@@ -46,6 +46,8 @@ index 0000000..e69de29
 +# This is a commented out line
 """
 
+SWE_INSTANCE_IMAGE_PREFIX = "sweb.eval.x86_64."
+ACR_LOGIN_SERVER = "codeexecservice.azurecr.io"
 
 def remove_ansi_sequences(input_string):
     ansi_escape_pattern = r"\x1b\[\d+m"
@@ -383,7 +385,9 @@ def run_reproduction_tests(
     if not instances:
         print("No instances to run.")
     else:
-        build_env_images(client, instances, force_rebuild, max_workers)
+        # build_env_images(client, instances, force_rebuild, max_workers)
+        for instance_id in instance_ids:
+            prepare_image(client, instance_id)
 
     no_f2p_instances = []
 
@@ -404,6 +408,7 @@ def run_reproduction_tests(
     test_specs = rearrange_patches(test_specs)
 
     instance_image_ids = {x.instance_image_key for x in test_specs}
+    print('heree', instance_image_ids)
     existing_images = {
         tag
         for i in client.images.list(all=True)
@@ -486,6 +491,16 @@ def run_reproduction_tests(
     print("All instances run.")
     return results
 
+def prepare_image(client, instance_id):
+    full_image_name = f"{SWE_INSTANCE_IMAGE_PREFIX}{instance_id}:latest"
+    try:
+        client.images.get(full_image_name)
+        print(f"Instance image {instance_id} already exists locally, skipping...")
+    except docker.errors.ImageNotFound:
+        print(f"Pulling instance image {instance_id} from ACR...")
+        image = client.images.pull(f"{ACR_LOGIN_SERVER}/{full_image_name}")
+        image.tag(f"{SWE_INSTANCE_IMAGE_PREFIX}{instance_id}", tag="latest")
+        client.images.remove(f"{ACR_LOGIN_SERVER}/{full_image_name}", force=True)
 
 def run_tests(
     instance_ids: list,
@@ -504,6 +519,7 @@ def run_tests(
     resource.setrlimit(resource.RLIMIT_NOFILE, (OPEN_FILE_LIMIT, OPEN_FILE_LIMIT))
 
     print(f"Using run_id: {run_id}")
+    print(len(instance_ids))
 
     split = "test"
     client = docker.from_env()
@@ -530,7 +546,9 @@ def run_tests(
     if not instances:
         print("No instances to run.")
     else:
-        build_env_images(client, instances, force_rebuild, max_workers)
+        # build_env_images(client, instances, force_rebuild, max_workers)
+        for instance_id in instance_ids:
+            prepare_image(client, instance_id)
 
     instance_test_dict = {}
 

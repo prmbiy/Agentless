@@ -35,7 +35,14 @@ def _run_reproduction_tests(args):
         # for reproduction test selection
         # run on original repo to select tests which can reproduce the issue
         ds = load_dataset(args.dataset)
+        def filter_swebench(swe_bench_data):
+            with open('instance_ids.txt') as f:
+                instance_ids = f.read()
+            instance_ids = instance_ids.splitlines()
+            return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+        ds = filter_swebench(ds)
         instance_ids = ds["test"]["instance_id"]
+        # instance_ids = args.instance_ids
         patches = [
             {"instance_id": instance_id, "patch": "", "normalized_patch": ""}
             for instance_id in instance_ids
@@ -67,6 +74,12 @@ def _run_reproduction_tests(args):
         # check on groundtruth patches
         # for evaluation purposes
         ds = load_dataset(args.dataset)
+        def filter_swebench(swe_bench_data):
+            with open('instance_ids.txt') as f:
+                instance_ids = f.read()
+            instance_ids = instance_ids.splitlines()
+            return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+        ds = filter_swebench(ds)
         instance_ids = ds["test"]["instance_id"]
         patches = ds["test"]["patch"]
 

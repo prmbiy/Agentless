@@ -3,6 +3,7 @@ import os
 from abc import ABC
 
 import tiktoken
+from azure.identity import AzureCliCredential, DefaultAzureCredential, get_bearer_token_provider
 from llama_index.core import (
     Document,
     MockEmbedding,
@@ -15,7 +16,9 @@ from llama_index.core.callbacks import CallbackManager, TokenCountingHandler
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.schema import MetadataMode
 from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 
+from agentless.util.local_token_file_credential import LocalTokenFileCredential
 from agentless.util.api_requests import num_tokens_from_messages
 from agentless.util.index_skeleton import parse_global_stmt_from_code
 from agentless.util.preprocess_data import (
@@ -257,7 +260,20 @@ class EmbeddingIndex(ABC):
                 )  # embedding dimension does not matter for mocking.
                 Settings.callback_manager = CallbackManager([token_counter])
             else:
-                embed_model = OpenAIEmbedding(model_name="text-embedding-3-small")
+                # identity = DefaultAzureCredential() #LocalTokenFileCredential(self.logger)
+                token = AzureCliCredential().get_token('https://cognitiveservices.azure.com/.default').token
+                # provider = get_bearer_token_provider(identity, 'https://cognitiveservices.azure.com/.default')
+                def token_ret(): return token
+                provider = token_ret
+                embed_model = AzureOpenAIEmbedding(
+                    api_base='https://deeppromptaustraliaeast.openai.azure.com',
+                    api_version="2024-05-01-preview",
+                    azure_ad_token_provider=provider,
+                    use_azure_ad=True,
+                    api_key=None,
+                    azure_endpoint='https://deeppromptaustraliaeast.openai.azure.com/openai/deployments/text-embedding-3-small/embeddings?api-version=2023-05-15',
+                    azure_deployment='text-embedding-3-small',
+                    model_name="text-embedding-3-small")
             index = VectorStoreIndex.from_documents(documents, embed_model=embed_model)
             index.storage_context.persist(persist_dir=persist_dir)
         else:

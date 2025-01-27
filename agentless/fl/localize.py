@@ -397,6 +397,12 @@ def localize_instance(
 
 def localize_irrelevant(args):
     swe_bench_data = load_dataset(args.dataset, split="test")
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    swe_bench_data = filter_swebench(swe_bench_data)
     existing_instance_ids = (
         load_existing_instance_ids(args.output_file) if args.skip_existing else set()
     )
@@ -431,6 +437,12 @@ def localize_irrelevant(args):
 
 def localize(args):
     swe_bench_data = load_dataset(args.dataset, split="test")
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    swe_bench_data = filter_swebench(swe_bench_data)
     start_file_locs = load_jsonl(args.start_file) if args.start_file else None
     existing_instance_ids = (
         load_existing_instance_ids(args.output_file) if args.skip_existing else set()
@@ -577,6 +589,7 @@ def main():
             "deepseek-coder",
             "gpt-4o-mini-2024-07-18",
             "claude-3-5-sonnet-20241022",
+            "deepseek-reasoner",
         ],
     )
     parser.add_argument(

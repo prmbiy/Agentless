@@ -33,6 +33,12 @@ def rewrite_report(instance_id, input_folder_path, regression_tests):
 
 def save_passing_tests(output_jsonl_path, input_folder_path, dataset):
     ds = load_dataset(dataset)
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    ds = filter_swebench(ds)
 
     with jsonlines.open(output_jsonl_path, mode="w") as writer:
         for entry in ds["test"]:
@@ -73,6 +79,7 @@ def run_regression_for_each_instance(args, lines, run_id):
     instance_ids = [line["instance_id"] for line in lines]
     patches = [line["model_patch"] for line in lines]
 
+    print('here3')
     instance_to_plausible = run_tests(
         instance_ids,
         patches,
@@ -107,8 +114,17 @@ def check_if_all_instances_pass(instance_to_plausible):
 def _run_regression(args):
     if args.predictions_path == "gold":
         ds = load_dataset(args.dataset)
+        def filter_swebench(swe_bench_data):
+            with open('instance_ids.txt') as f:
+                instance_ids = f.read()
+            instance_ids = instance_ids.splitlines()
+            return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+        ds = filter_swebench(ds)
+        print(instance_ids)
         instance_ids = ds["test"]["instance_id"]
         patches = ds["test"]["patch"]
+
+        print(instance_ids)
 
         instance_to_plausible = run_tests(
             instance_ids,
@@ -126,7 +142,7 @@ def _run_regression(args):
         assert args.predictions_path.endswith("_processed.jsonl")
         with open(args.predictions_path, "r") as file:
             data_lines = [json.loads(line) for line in file]
-
+    
         if not args.load:
             run_regression_for_each_instance(args, data_lines, args.run_id)
 
@@ -175,6 +191,12 @@ def _run_regression(args):
         # are renamed in the test patch and we grabbed the new file names.
         # We can fix this by checking if a test file exists in the base repo.
         ds = load_dataset(args.dataset)
+        def filter_swebench(swe_bench_data):
+            with open('instance_ids.txt') as f:
+                instance_ids = f.read()
+            instance_ids = instance_ids.splitlines()
+            return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+        ds = filter_swebench(ds)
         instance_ids = (
             ds["test"]["instance_id"]
             if args.instance_ids is None

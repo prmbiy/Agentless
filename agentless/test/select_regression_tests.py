@@ -9,7 +9,7 @@ from agentless.util.api_requests import num_tokens_from_messages
 from agentless.util.model import make_model
 from agentless.util.utils import load_jsonl, setup_logger
 
-MAX_CONTEXT_LENGTH = 128000
+MAX_CONTEXT_LENGTH = 64000 #128000
 
 
 select_tests_prompt_template = """
@@ -151,6 +151,12 @@ def select_tests(args):
             instance_test_dict[instance_id] = test
 
     swe_bench_data = load_dataset(args.dataset, split="test")
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    swe_bench_data = filter_swebench(swe_bench_data)
     instance_ids = (
         swe_bench_data["instance_id"]
         if args.instance_ids is None
@@ -179,6 +185,7 @@ def main():
             "deepseek-coder",
             "gpt-4o-mini-2024-07-18",
             "claude-3-5-sonnet-20241022",
+            "deepseek-reasoner",
         ],
     )
     parser.add_argument(

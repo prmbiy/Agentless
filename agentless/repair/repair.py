@@ -536,6 +536,12 @@ def repair(args):
         json.dump(vars(args), f, indent=4)
 
     swe_bench_data = load_dataset(args.dataset, split="test")
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    swe_bench_data = filter_swebench(swe_bench_data)
     locs = load_jsonl(args.loc_file)
     prev_o = load_jsonl(args.output_file) if os.path.exists(args.output_file) else []
 
@@ -752,6 +758,7 @@ def main():
             "deepseek-coder",
             "gpt-4o-mini-2024-07-18",
             "claude-3-5-sonnet-20241022",
+            "deepseek-reasoner",
         ],
     )
     parser.add_argument(

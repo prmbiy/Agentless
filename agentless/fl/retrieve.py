@@ -98,6 +98,12 @@ def retrieve(args):
         found_files = []
 
     swe_bench_data = load_dataset(args.dataset, split="test")
+    def filter_swebench(swe_bench_data):
+        with open('instance_ids.txt') as f:
+            instance_ids = f.read()
+        instance_ids = instance_ids.splitlines()
+        return swe_bench_data.filter(lambda x: x.get("instance_id") in instance_ids)
+    swe_bench_data = filter_swebench(swe_bench_data)
     prev_o = load_jsonl(args.output_file) if os.path.exists(args.output_file) else []
 
     if args.num_threads == 1:
