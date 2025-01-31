@@ -55,11 +55,12 @@ def handler(signum, frame):
     raise Exception("end of time")
 
 
-def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeout=100):
+def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeout=1200):
     ret = None
     retries = 0
 
     client = openai.OpenAI(base_url=base_url, api_key="text")
+    config['timeout'] = timeout
 
     while ret is None and retries < max_retries:
         try:
