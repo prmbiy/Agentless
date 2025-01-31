@@ -672,10 +672,10 @@ Return just the locations wrapped with ```.
             else:
                 coarse_info += "\n".join(found_locs) + "\n"
         self.logger.info("\n" + coarse_info)
-        if len(model_found_locs_separated_in_samples) == 1:
-            model_found_locs_separated_in_samples = (
-                model_found_locs_separated_in_samples[0]
-            )
+        # if len(model_found_locs_separated_in_samples) == 1:
+        #     model_found_locs_separated_in_samples = (
+        #         model_found_locs_separated_in_samples[0]
+        #     )
 
         return (
             model_found_locs_separated_in_samples,
