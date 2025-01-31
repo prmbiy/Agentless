@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import re
+
 from agentless.repair.repair import construct_topn_file_context
 from agentless.util.compress_file import get_skeleton
 from agentless.util.postprocess_data import extract_code_blocks, extract_locs_for_files
@@ -234,12 +236,13 @@ Return just the locations wrapped with ```.
         **kwargs,
     ):
         super().__init__(instance_id, structure, problem_statement)
-        self.max_tokens = 300
+        self.max_tokens = 3000
         self.model_name = model_name
         self.backend = backend
         self.logger = logger
 
     def _parse_model_return_lines(self, content: str) -> list[str]:
+        content = re.sub(r"<think>[\s\S]*?</think>", "", content).strip()
         if content:
             return content.strip().split("\n")
 
