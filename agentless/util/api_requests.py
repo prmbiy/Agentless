@@ -7,6 +7,8 @@ import tiktoken
 
 from azure.ai.inference import ChatCompletionsClient
 from azure.core.credentials import AzureKeyCredential
+from azure.core.pipeline.transport import RequestsTransport
+from azure.core import exceptions
 
 def num_tokens_from_messages(message, model="gpt-3.5-turbo-0301"):
     """Returns the number of tokens used by a list of messages."""
@@ -61,12 +63,14 @@ def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeou
     ret = None
     retries = 0
 
+    custom_transport = RequestsTransport(connection_timeout=60, read_timeout=300)
+
     api_key = 'text'
     client = ChatCompletionsClient(
         endpoint='https://DeepSeek-R1-param.westus.models.ai.azure.com',
-        credential=AzureKeyCredential(api_key)
+        credential=AzureKeyCredential(api_key),
+        transport=custom_transport
     )
-    config['timeout'] = timeout
     # config['model'] = 'DeepSeek-R1'
 
     while ret is None and retries < max_retries:
@@ -101,6 +105,12 @@ def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeou
                 print(e)
                 logger.info(e)
                 time.sleep(1)
+        except exceptions.ServiceResponseError as e:
+            print("Azure ServiceResponseError. Waiting...")
+            logger.info("Azure ServiceResponseError. Waiting...")
+            print(e)
+            logger.info(e)
+            time.sleep(5)
 
         retries += 1
 
