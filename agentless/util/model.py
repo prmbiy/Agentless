@@ -355,7 +355,7 @@ class DeepSeekChatDecoder(DecoderBase):
                 model=self.name,
             )
             ret = request_chatgpt_engine(
-                config, self.logger, base_url="http://4.206.8.65:30000/v1"
+                config, self.logger, base_url="https://DeepSeek-R1-param.westus.models.ai.azure.com"
             )
             if ret:
                 trajs.append(
