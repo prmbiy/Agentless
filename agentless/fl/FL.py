@@ -236,7 +236,7 @@ Return just the locations wrapped with ```.
         **kwargs,
     ):
         super().__init__(instance_id, structure, problem_statement)
-        self.max_tokens = 3000
+        self.max_tokens = 4500
         self.model_name = model_name
         self.backend = backend
         self.logger = logger

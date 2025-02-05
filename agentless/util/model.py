@@ -389,7 +389,7 @@ def make_model(
     backend: str,
     logger,
     batch_size: int = 1,
-    max_tokens: int = 1024,
+    max_tokens: int = 4500,
     temperature: float = 0.0,
 ):
     if backend == "openai":

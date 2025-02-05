@@ -405,7 +405,7 @@ def process_loc(loc, args, swe_bench_data, prev_o, write_lock=None):
         model=args.model,
         logger=logger,
         backend=args.backend,
-        max_tokens=1024,
+        max_tokens=4500,
         temperature=0,
         batch_size=1,
     )
@@ -441,7 +441,7 @@ def process_loc(loc, args, swe_bench_data, prev_o, write_lock=None):
         model=args.model,
         logger=logger,
         backend=args.backend,
-        max_tokens=1024,
+        max_tokens=4500,
         temperature=0.8,
         batch_size=args.max_samples - 1,  # minus the 1 greedy sample
     )
