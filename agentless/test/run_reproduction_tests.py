@@ -55,7 +55,7 @@ def _run_reproduction_tests(args):
             patches,
             args.num_workers,
             args.run_id,
-            args.instance_ids,
+            instance_ids,
             args.timeout,
             testing_patches=True,
             apply_model_patch=False,

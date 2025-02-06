@@ -1,4 +1,5 @@
 import time
+import re
 from typing import Dict, Union
 
 import anthropic
@@ -63,8 +64,8 @@ def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeou
     ret = None
     retries = 0
 
-    custom_transport = RequestsTransport(connection_timeout=60, read_timeout=300)
-
+    custom_transport = RequestsTransport(connection_timeout=60, read_timeout=1200)
+ 
     api_key = 'text'
     client = ChatCompletionsClient(
         endpoint='https://DeepSeek-R1-param.westus.models.ai.azure.com',
@@ -115,6 +116,7 @@ def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeou
         retries += 1
 
     logger.info(f"API response {ret}")
+    ret.choices[0].message.content = re.sub(r"<think>[\s\S]*?</think>", "", ret.choices[0].message.content).strip()
     return ret
 
 

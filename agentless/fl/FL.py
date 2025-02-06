@@ -242,7 +242,6 @@ Return just the locations wrapped with ```.
         self.logger = logger
 
     def _parse_model_return_lines(self, content: str) -> list[str]:
-        content = re.sub(r"<think>[\s\S]*?</think>", "", content).strip()
         if content:
             return content.strip().split("\n")
 
@@ -271,7 +270,7 @@ Return just the locations wrapped with ```.
             model=self.model_name,
             backend=self.backend,
             logger=self.logger,
-            max_tokens=2048,  # self.max_tokens,
+            max_tokens=4500,  # self.max_tokens,
             temperature=0,
             batch_size=1,
         )
@@ -672,10 +671,10 @@ Return just the locations wrapped with ```.
             else:
                 coarse_info += "\n".join(found_locs) + "\n"
         self.logger.info("\n" + coarse_info)
-        # if len(model_found_locs_separated_in_samples) == 1:
-        #     model_found_locs_separated_in_samples = (
-        #         model_found_locs_separated_in_samples[0]
-        #     )
+        if len(model_found_locs_separated_in_samples) == 1:
+            model_found_locs_separated_in_samples = (
+                model_found_locs_separated_in_samples[0]
+            )
 
         return (
             model_found_locs_separated_in_samples,

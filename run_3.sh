@@ -1,53 +1,80 @@
 
-python agentless/fl/combine.py  --retrieval_loc_file "results/swe-bench-verified_${EXP_NAME}/retrievel_embedding/retrieve_locs.jsonl" \
-                                --model_loc_file "results/swe-bench-verified_${EXP_NAME}/file_level/loc_outputs.jsonl" \
-                                --top_n 3 \
-                                --output_folder "results/swe-bench-verified_${EXP_NAME}/file_level_combined"
+python agentless/test/run_regression_tests.py --run_id generate_regression_tests \
+    --output_file results/swe-bench-verified_${EXP_NAME}/passing_tests.jsonl \
+    --dataset=princeton-nlp/SWE-bench_Verified
 
-python agentless/fl/localize.py --related_level \
-                                --output_folder "results/swe-bench-verified_${EXP_NAME}/related_elements" \
-                                --top_n 3 \
-                                --compress_assign \
-                                --compress \
-                                --start_file "results/swe-bench-verified_${EXP_NAME}/file_level_combined/combined_locs.jsonl" \
-                                --num_threads 1 \
-                                --skip_existing \
-                                --dataset=princeton-nlp/SWE-bench_Verified \
-                                --model=deepseek-reasoner \
-                                --backend=deepseek
+python agentless/test/select_regression_tests.py --passing_tests results/swe-bench-verified_${EXP_NAME}/passing_tests.jsonl \
+    --output_folder results/swe-bench-verified_${EXP_NAME}/select_regression \
+    --dataset=princeton-nlp/SWE-bench_Verified \
+    --model=deepseek-reasoner \
+    --backend=deepseek
 
-python agentless/fl/localize.py --fine_grain_line_level \
-                                --output_folder "results/swe-bench-verified_${EXP_NAME}/edit_location_samples" \
-                                --top_n 3 \
-                                --compress \
-                                --temperature 0.8 \
-                                --num_samples 1 \
-                                --start_file "results/swe-bench-verified_${EXP_NAME}/related_elements/loc_outputs.jsonl" \
-                                --num_threads 1 \
-                                --skip_existing \
-                                --dataset=princeton-nlp/SWE-bench_Verified \
-                                --model=deepseek-reasoner \
-                                --backend=deepseek
+folder=results/swe-bench-verified_${EXP_NAME}/repair_sample_1
+for num in {0..9..1}; do
+    run_id_prefix=$(basename $folder); 
+    python agentless/test/run_regression_tests.py --regression_tests results/swe-bench-verified_${EXP_NAME}/select_regression/output.jsonl \
+    --predictions_path="${folder}/output_${num}_processed.jsonl" \
+    --run_id="${run_id_prefix}_regression_${num}" \
+    --num_workers 4 \
+    --dataset=princeton-nlp/SWE-bench_Verified;
+done
 
-python agentless/fl/localize.py --merge \
-                                --output_folder "results/swe-bench-verified_${EXP_NAME}/edit_location_individual" \
-                                --top_n 3 \
-                                --num_samples 1 \
-                                --start_file "results/swe-bench-verified_${EXP_NAME}/edit_location_samples/loc_outputs.jsonl" \
-                                --dataset=princeton-nlp/SWE-bench_Verified \
-                                --model=deepseek-reasoner \
-                                --backend=deepseek
+python agentless/test/generate_reproduction_tests.py --max_samples 40 \
+    --output_folder results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples \
+    --num_threads 5 \
+    --dataset=princeton-nlp/SWE-bench_Verified \
+    --model=deepseek-reasoner \
+    --backend=deepseek
 
-python agentless/repair/repair.py --loc_file "results/swe-bench-verified_${EXP_NAME}/edit_location_individual/loc_merged_0-0_outputs.jsonl" \
-                                  --output_folder "results/swe-bench-verified_${EXP_NAME}/repair_sample_1" \
-                                  --loc_interval \
-                                  --top_n=3 \
-                                  --context_window=10 \
-                                  --max_samples 10  \
-                                  --cot \
-                                  --diff_format \
-                                  --gen_and_process \
-                                  --num_threads 1 \
-                                  --dataset=princeton-nlp/SWE-bench_Verified \
-                                  --model=deepseek-reasoner \
-                                  --backend=deepseek
+for num in {0..9}; do
+    echo "Processing ${num}";
+    python agentless/test/run_reproduction_tests.py --run_id="reproduction_test_generation_filter_sample_${num}" \
+    --test_jsonl="results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples/output_${num}_processed_reproduction_test.jsonl" \
+    --num_workers 4 \
+    --testing \
+    --dataset=princeton-nlp/SWE-bench_Verified & 
+done
+wait
+
+python agentless/test/run_reproduction_tests.py --run_id="reproduction_test_generation_filter_sample_0" \
+    --test_jsonl="results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples/output_0_processed_reproduction_test.jsonl" \
+    --num_workers 4 \
+    --testing \
+    --dataset=princeton-nlp/SWE-bench_Verified & 
+
+for st in {0..36..4}; do   en=$((st + 3));   
+        echo "Processing ${st} to ${en}";   
+        for num in $(seq $st $en); do     
+            echo "Processing ${num}";     
+            python agentless/test/run_reproduction_tests.py --run_id="reproduction_test_generation_filter_sample_${num}" \
+                --test_jsonl="results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples/output_${num}_processed_reproduction_test.jsonl" \
+                --num_workers 6 \
+                --testing \
+                --dataset=princeton-nlp/SWE-bench_Verified;
+done & done
+
+python agentless/test/generate_reproduction_tests.py --max_samples 10 \
+    --output_folder results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples \
+    --output_file reproduction_tests.jsonl \
+    --select \
+    --dataset=princeton-nlp/SWE-bench_Verified \
+    --model=deepseek-reasoner \
+    --backend=deepseek
+
+folder=results/swe-bench-verified_${EXP_NAME}/repair_sample_1
+for num in {0..9..1}; do
+    run_id_prefix=$(basename $folder); 
+    python agentless/test/run_reproduction_tests.py --test_jsonl results/swe-bench-verified_${EXP_NAME}/reproduction_test_samples/reproduction_tests.jsonl \
+    --predictions_path="${folder}/output_${num}_processed.jsonl" \
+    --run_id="${run_id_prefix}_reproduction_${num}" \
+    --num_workers 10 \
+    --dataset=princeton-nlp/SWE-bench_Verified;
+done
+
+python agentless/repair/rerank.py --patch_folder results/swe-bench-verified_${EXP_NAME}/repair_sample_1/ \
+    --output_file results/swe-bench-verified_${EXP_NAME}/all_preds.jsonl \
+    --num_samples 10 \
+    --deduplicate \
+    --regression \
+    --reproduction
+

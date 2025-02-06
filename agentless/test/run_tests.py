@@ -379,7 +379,7 @@ def run_reproduction_tests(
             }
 
     instances = get_dataset_from_preds(
-        dataset_name, split, instance_ids, predictions, run_id
+        dataset_name, split, instance_ids, predictions, run_id, exclude_completed=False
     )
 
     if not instances:

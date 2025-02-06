@@ -450,9 +450,12 @@ def localize(args):
 
     if args.num_threads == 1:
         for bug in tqdm(swe_bench_data, colour="MAGENTA"):
-            localize_instance(
-                bug, args, swe_bench_data, start_file_locs, existing_instance_ids
-            )
+            try:
+                localize_instance(
+                    bug, args, swe_bench_data, start_file_locs, existing_instance_ids
+                )
+            except:
+                print(f'error at {bug["instance_id"]}')
     else:
         write_lock = Lock()
         with concurrent.futures.ThreadPoolExecutor(
