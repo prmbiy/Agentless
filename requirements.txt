@@ -9,4 +9,5 @@ jsonlines
 swebench==2.1.8
 azure-identity
 azure-cli
+azure-ai-ml
 llama-index-embeddings-azure-openai

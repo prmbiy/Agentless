@@ -120,6 +120,24 @@ def request_chatgpt_engine(config, logger, base_url=None, max_retries=40, timeou
     return ret
 
 
+def request_deepseek_engine(config, logger, base_url=None, max_retries=3, timeout=1200):
+    ret = None
+    retries = 0
+    client = openai.Client(base_url="http://20.251.69.181/v1", api_key="EMPTY")
+    config['model'] = 'default'
+
+    while ret is None and retries < max_retries:
+        try:
+            logger.info("Creating API request")
+            ret = client.chat.completions.create(**config)
+        except Exception as e:
+            logger.error(f"error {e}. Waiting to retry...", exc_info=True)
+            time.sleep(10 * retries)
+        retries += 1
+
+    logger.info(f"API response {ret}")
+    return ret
+
 def create_anthropic_config(
     message: str,
     max_tokens: int,

@@ -7,6 +7,7 @@ from agentless.util.api_requests import (
     create_chatgpt_config,
     request_anthropic_engine,
     request_chatgpt_engine,
+    request_deepseek_engine,
 )
 
 
@@ -384,6 +385,56 @@ class DeepSeekChatDecoder(DecoderBase):
         return False
 
 
+class DeepSeekR1ChatDecoder(DecoderBase):
+    def __init__(self, name: str, logger, **kwargs) -> None:
+        super().__init__(name, logger, **kwargs)
+
+    def codegen(
+        self, message: str, num_samples: int = 1, prompt_cache: bool = False
+    ) -> List[dict]:
+        if self.temperature == 0:
+            assert num_samples == 1
+
+        trajs = []
+        for _ in range(num_samples):
+            config = {
+                "model": "default",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful AI assistant."},
+                    {"role": "user", "content": message},
+                ],
+                "temperature": self.temperature,
+                "top_p": 0.95,
+                "max_tokens": self.max_new_tokens,
+            }
+            ret = request_deepseek_engine(config, self.logger)
+            # ret.choices[0].message.content = re.sub(r"<think>[\s\S]*?</think>", "", ret.choices[0].message.content).strip()
+            if ret:
+                trajs.append(
+                    {
+                        "response": ret.choices[0].message.content,
+                        "usage": {
+                            "completion_tokens": ret.usage.completion_tokens,
+                            "prompt_tokens": ret.usage.prompt_tokens,
+                        },
+                    }
+                )
+            else:
+                trajs.append(
+                    {
+                        "response": "",
+                        "usage": {
+                            "completion_tokens": 0,
+                            "prompt_tokens": 0,
+                        },
+                    }
+                )
+
+        return trajs
+
+    def is_direct_completion(self) -> bool:
+        return False
+
 def make_model(
     model: str,
     backend: str,
@@ -410,6 +461,14 @@ def make_model(
         )
     elif backend == "deepseek":
         return DeepSeekChatDecoder(
+            name=model,
+            logger=logger,
+            batch_size=batch_size,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+        )
+    elif backend == "deepseek-sgl":
+        return DeepSeekR1ChatDecoder(
             name=model,
             logger=logger,
             batch_size=batch_size,
