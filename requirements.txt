@@ -10,4 +10,6 @@ swebench==2.1.8
 azure-identity
 azure-cli
 azure-ai-ml
+azure-ai-inference
 llama-index-embeddings-azure-openai
+loguru

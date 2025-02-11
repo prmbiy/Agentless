@@ -242,6 +242,9 @@ def construct_topn_file_context(
     file_loc_intervals = dict()
     topn_content = ""
 
+    if len(file_to_locs) == 0 or isinstance(file_to_locs, list):
+        return topn_content, file_loc_intervals
+
     for pred_file, locs in file_to_locs.items():
         content = file_contents[pred_file]
         line_locs, context_intervals = transfer_arb_locs_to_locs(
@@ -442,7 +445,7 @@ def process_loc(loc, args, swe_bench_data, prev_o, write_lock=None):
         logger=logger,
         backend=args.backend,
         max_tokens=4500,
-        temperature=0.8,
+        temperature=0.6,
         batch_size=args.max_samples - 1,  # minus the 1 greedy sample
     )
 
@@ -759,13 +762,14 @@ def main():
             "gpt-4o-mini-2024-07-18",
             "claude-3-5-sonnet-20241022",
             "deepseek-reasoner",
+            "deepseek-r1",
         ],
     )
     parser.add_argument(
         "--backend",
         type=str,
         default="openai",
-        choices=["openai", "deepseek", "anthropic"],
+        choices=["openai", "deepseek", "deepseek-sgl", "anthropic"],
     )
     parser.add_argument("--output_folder", type=str, required=True)
     parser.add_argument("--post_process", action="store_true")
@@ -796,7 +800,7 @@ def main():
     args = parser.parse_args()
 
     assert (not "deepseek" in args.model) or (
-        args.backend == "deepseek"
+        args.backend in ["deepseek", "deepseek-sgl"]
     ), "Must specify `--backend deepseek` if using a DeepSeek model"
 
     # diff_format and str_replace_format cannot be both True

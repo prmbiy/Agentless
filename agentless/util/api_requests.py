@@ -1,7 +1,7 @@
 import time
 import re
 from typing import Dict, Union
-
+import json
 import anthropic
 import openai
 import tiktoken
@@ -136,6 +136,12 @@ def request_deepseek_engine(config, logger, base_url=None, max_retries=3, timeou
         retries += 1
 
     logger.info(f"API response {ret}")
+    if ret is not None:
+        llm_log_file = "./deepseek_r1.jsonl"
+        with open(llm_log_file, "a") as f:
+            config["response"] = ret.choices[0].message.content
+            config["usage"] = {"prompt_tokens": ret.usage.prompt_tokens, "completion_tokens": ret.usage.completion_tokens}
+            f.write(json.dumps(config) + "\n")
     return ret
 
 def create_anthropic_config(
