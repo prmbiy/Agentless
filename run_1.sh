@@ -1,4 +1,4 @@
-
+set -e
 EXP_NAME="r1"
 
 python agentless/fl/localize.py --file_level \

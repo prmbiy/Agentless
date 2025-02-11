@@ -507,13 +507,14 @@ def main():
             "gpt-4o-mini-2024-07-18",
             "claude-3-5-sonnet-20241022",
             "deepseek-reasoner",
+            "deepseek-r1",
         ],
     )
     parser.add_argument(
         "--backend",
         type=str,
         default="openai",
-        choices=["openai", "deepseek", "anthropic"],
+        choices=["openai", "deepseek", "deepseek-sgl", "anthropic"],
     )
     parser.add_argument("--output_folder", type=str, required=True)
     parser.add_argument("--output_file", type=str)
@@ -539,7 +540,7 @@ def main():
     args = parser.parse_args()
 
     assert (not "deepseek" in args.model) or (
-        args.backend == "deepseek"
+        args.backend in ["deepseek", "deepseek-sgl"]
     ), "Must specify `--backend deepseek` if using a DeepSeek model"
 
     if not os.path.exists(args.output_folder):

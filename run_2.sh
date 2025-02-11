@@ -1,3 +1,4 @@
+set -e
 EXP_NAME=r1
 
 python agentless/fl/retrieve.py --index_type simple \
