@@ -242,9 +242,6 @@ def construct_topn_file_context(
     file_loc_intervals = dict()
     topn_content = ""
 
-    if len(file_to_locs) == 0 or isinstance(file_to_locs, list):
-        return topn_content, file_loc_intervals
-
     for pred_file, locs in file_to_locs.items():
         content = file_contents[pred_file]
         line_locs, context_intervals = transfer_arb_locs_to_locs(
@@ -315,7 +312,9 @@ def process_loc(loc, args, swe_bench_data, prev_o, write_lock=None):
         return
 
     pred_files = loc["found_files"][: args.top_n]
-    bench_data = [x for x in swe_bench_data if x["instance_id"] == instance_id][0]
+    samples = [x for x in swe_bench_data if x["instance_id"] == instance_id]
+    assert len(samples) == 1, f"can not find instance_id {instance_id} in swe_bench_data"
+    bench_data = samples[0]
     problem_statement = bench_data["problem_statement"]
     structure = get_repo_structure(
         instance_id, bench_data["repo"], bench_data["base_commit"], "playground"
@@ -346,9 +345,10 @@ def process_loc(loc, args, swe_bench_data, prev_o, write_lock=None):
     # Construct top-n file context
     file_to_edit_locs = dict()
 
-    if "found_edit_locs" in loc:
+    if "found_edit_locs" in loc and isinstance(loc["found_edit_locs"], dict):
         file_to_edit_locs = loc["found_edit_locs"]
-
+    else:
+        print("file_to_edit_locs is [], cause found_edit_locs not in loc")
     topn_content, file_loc_intervals = construct_topn_file_context(
         file_to_edit_locs,
         pred_files,
