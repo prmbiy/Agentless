@@ -502,10 +502,10 @@ def merge(args):
         en_id = st_id
         merged_locs = []
         for locs in start_file_locs:
-            merged_found_locs = []
-            if "found_edit_locs" in locs and len(locs["found_edit_locs"]) and isinstance(locs["found_edit_locs"], list):
+            merged_found_locs = {}
+            if "found_edit_locs" in locs:
                 merged_found_locs = merge_locs(
-                    locs["found_edit_locs"][st_id : st_id + 1]
+                    [locs["found_edit_locs"]][st_id : st_id + 1]
                 )
             merged_locs.append({**locs, "found_edit_locs": merged_found_locs})
         with open(
