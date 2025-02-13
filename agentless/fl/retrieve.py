@@ -47,15 +47,14 @@ def retrieve_locs(bug, args, swe_bench_data, found_files, prev_o, write_lock=Non
     filter_none_python(structure)
     filter_out_test_files(structure)
 
+    kwargs = {}
     if args.filter_file:
-        kwargs = {  # build retrieval kwargs
-            "given_files": [x for x in found_files if x["instance_id"] == instance_id][
-                0
-            ]["found_files"],
-            "filter_top_n": args.filter_top_n,
-        }
-    else:
-        kwargs = {}
+        given_files = [x for x in found_files if x["instance_id"] == instance_id]
+        if len(given_files) != 0:
+            kwargs = {  # build retrieval kwargs
+                "given_files": given_files[0]["found_files"],
+                "filter_top_n": args.filter_top_n,
+            }
 
     # main retrieval
     retriever = EmbeddingIndex(
