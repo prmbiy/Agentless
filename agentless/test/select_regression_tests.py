@@ -94,7 +94,7 @@ def select_test(instance_id, args, swe_bench_data, prev_o, passing_tests):
         model=args.model,
         logger=logger,
         backend=args.backend,
-        max_tokens=4500,
+        max_tokens=8172,
         temperature=0,
         batch_size=1,
     )
