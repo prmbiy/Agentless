@@ -403,9 +403,9 @@ class DeepSeekR1ChatDecoder(DecoderBase):
                     {"role": "system", "content": "You are a helpful AI assistant."},
                     {"role": "user", "content": message},
                 ],
-                "temperature": self.temperature,
+                "temperature": 0.6,
                 "top_p": 0.95,
-                "max_tokens": self.max_new_tokens,
+                "max_tokens": 8192,
             }
             ret = request_deepseek_engine(config, self.logger)
             # ret.choices[0].message.content = re.sub(r"<think>[\s\S]*?</think>", "", ret.choices[0].message.content).strip()
