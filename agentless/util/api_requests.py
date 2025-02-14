@@ -142,6 +142,7 @@ def request_deepseek_engine(config, logger, base_url=None, max_retries=3, timeou
         llm_log_file = "./deepseek_r1.jsonl"
         with open(llm_log_file, "a") as f:
             config["response"] = ret.choices[0].message.content
+            config["finish_reason"] = ret.choices[0].finish_reason
             config["usage"] = {"prompt_tokens": ret.usage.prompt_tokens, "completion_tokens": ret.usage.completion_tokens}
             config["latency"] = latency
             f.write(json.dumps(config) + "\n")
